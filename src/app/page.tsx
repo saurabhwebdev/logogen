@@ -1,101 +1,143 @@
-import Image from "next/image";
+'use client';
+
+import { Palette, Download, ChevronDown, FileImage, Package } from 'lucide-react';
+import LogoGenerator from '../components/LogoGenerator';
+import AnimatedIconsShowcase from '../components/AnimatedIconsShowcase';
+import UndoRedoButtons from '../components/UndoRedoButtons';
+import { useRef, useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const logoGeneratorRef = useRef<{ 
+    undo: () => void; 
+    redo: () => void; 
+    downloadLogo: (format: 'png' | 'jpeg' | 'package') => void; 
+  } | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleUndo = () => {
+    logoGeneratorRef.current?.undo();
+  };
+
+  const handleRedo = () => {
+    logoGeneratorRef.current?.redo();
+  };
+
+  const handleDownload = (format: 'png' | 'jpeg' | 'package') => {
+    if (logoGeneratorRef.current) {
+      logoGeneratorRef.current.downloadLogo(format);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleClickOutside = () => {
+    setShowDropdown(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]" onClick={handleClickOutside}>
+      <header className="bg-white border-b border-gray-200 relative">
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <Palette className="w-6 h-6 text-indigo-600" />
+              <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
+                GenFast-IconMaker
+              </h1>
+            </div>
+
+            <div className="flex-1 max-w-lg mx-4">
+              <AnimatedIconsShowcase />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <UndoRedoButtons
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+              />
+              
+              <div className="relative">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDropdown(!showDropdown);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                  <ChevronDown 
+                    className={`w-4 h-4 transition-transform duration-200 ease-in-out ${
+                      showDropdown ? 'rotate-180' : 'rotate-0'
+                    }`}
+                  />
+                </button>
+
+                <div 
+                  className={`absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 transition-all duration-200 ease-in-out origin-top z-[9999] ${
+                    showDropdown 
+                      ? 'opacity-100 scale-100 translate-y-0' 
+                      : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                  }`}
+                >
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleDownload('png')}
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors duration-150"
+                    >
+                      <FileImage className="w-4 h-4" />
+                      <div className="text-left">
+                        <div>Download PNG</div>
+                        <div className="text-xs text-gray-500">High quality with transparency</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleDownload('jpeg')}
+                      className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors duration-150"
+                    >
+                      <FileImage className="w-4 h-4" />
+                      <div className="text-left">
+                        <div>Download JPEG</div>
+                        <div className="text-xs text-gray-500">Smaller file size, white background</div>
+                      </div>
+                    </button>
+                    <div className="h-[1px] bg-gray-100 my-1"></div>
+                    <div className="relative group">
+                      <button
+                        disabled
+                        className="w-full px-4 py-2 text-sm text-gray-400 flex items-center gap-2 cursor-not-allowed"
+                      >
+                        <Package className="w-4 h-4" />
+                        <div className="text-left">
+                          <div>Download Icon Package</div>
+                          <div className="text-xs text-gray-400">Complete set of web & app icons</div>
+                        </div>
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Coming Soon
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <LogoGenerator 
+          ref={logoGeneratorRef} 
+          onStateChange={(canUndo, canRedo) => {
+            setCanUndo(canUndo);
+            setCanRedo(canRedo);
+          }}
+        />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
